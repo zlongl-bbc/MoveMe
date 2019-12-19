@@ -4,9 +4,12 @@ export class Connections extends Component {
   static displayName = Connections.name;
 
   constructor(props) {
-    super(props);
+      super(props);
+
       this.state = {
-          from: "",
+          from: props.location.state.params.from,
+          to: props.location.state.params.to,
+          date: props.location.state.params.date,
           connections: [],
           loading: true
       };
@@ -16,7 +19,6 @@ export class Connections extends Component {
       this.populateConnectionData();
     }
 
-    y
     static renderConnectionsTable(connections) {
         return (
             <div>
@@ -29,13 +31,13 @@ export class Connections extends Component {
           </tr>
         </thead>
         <tbody>
-            {connections.map(connection =>
-            <tr key={connection.date}>
-                <td>{connection.from}</td>
-                <td>{connection.to}</td>
-                <td>{connection.date}</td>
-            </tr>
-          )}
+            {connections.map((connection, key) => 
+                <tr key={key}>
+                    <td>{connection.from.location.name}</td>
+                    <td>{connection.to.location.name}</td>
+                    <td>{connection.from.departure}</td>
+                </tr>
+            )}
         </tbody>
                 </table>
 
@@ -58,12 +60,21 @@ export class Connections extends Component {
   }
 
     async populateConnectionData() {
-        console.log(this.state);
-        const von = "";
-        return;
-      const response = await fetch('connection?von='+ von + '&bis=bern&date=2019-12-12T00:00:00');
-      const data = await response.json();
-      console.log(data.connections);
-      //this.setState({ connections: data, loading: false });
+
+        const von = this.state.from;
+        const bis = this.state.to;
+        const date = this.state.date;
+
+        const response = await fetch('connection?von=' + von + '&bis=' + bis + '&date=' + date);
+        const data = await response.json();
+
+        if (response.status == 400) {
+            this.props.history.pop({
+                pathname: '/',
+                state: { params: this.state }
+            });
+        }
+
+        this.setState({ connections: data.connections, loading: false});
   }
 }
